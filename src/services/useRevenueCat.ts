@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 import Purchases from 'react-native-purchases';
 import { RevenueCatProvider } from './RevenueCatService';
 
-const REVENUECAT_API_KEY = 'REPLACE_WITH_REVENUECAT_KEY';
+const REVENUECAT_API_KEY = 'appl_tIliMZFqDbeAOlAhSxXwxbyfPhX';
 
 export const useRevenueCat = () => {
   const [isProUser, setIsProUser] = useState(false);
