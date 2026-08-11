@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Camera, CameraType } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
+import * as Haptics from 'expo-haptics';
 import { Colors } from '../constants/colors';
 import { formatCurrency } from '../utils/format';
 import { useRevenueCatContext } from '../services/RevenueCatService';
@@ -19,34 +19,36 @@ interface ExtractedData {
 
 const ScanScreen: React.FC = () => {
   const { isProUser } = useRevenueCatContext();
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [cameraRef, setCameraRef] = useState<Camera | null>(null);
   const [capturedUri, setCapturedUri] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
   const [extracted, setExtracted] = useState<ExtractedData | null>(null);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
-  }, []);
-
-  const takePicture = async () => {
-    if (!cameraRef) return;
-    try {
-      const photo = await cameraRef.takePictureAsync({ quality: 0.7, base64: true });
-      setCapturedUri(photo.uri);
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Needed', 'Camera permission is required to scan receipts.');
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      base64: true,
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets[0]) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setCapturedUri(result.assets[0].uri);
       setExtracted(null);
-      handleExtract(photo.base64 || '');
-    } catch (e) {
-      Alert.alert('Error', 'Failed to capture photo.');
+      handleExtract(result.assets[0].base64 || '');
     }
   };
 
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, base64: true, quality: 0.7 });
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      base64: true,
+      quality: 0.7,
+    });
     if (!result.canceled && result.assets[0]) {
       setCapturedUri(result.assets[0].uri);
       setExtracted(null);
@@ -99,19 +101,6 @@ const ScanScreen: React.FC = () => {
         <Ionicons name="lock-closed" size={48} color={Colors.textTertiary} />
         <Text style={styles.lockedTitle}>Pro Feature</Text>
         <Text style={styles.lockedText}>Receipt scanning is available with a Pro subscription. Upgrade to scan receipts and auto-extract data with AI.</Text>
-      </View>
-    );
-  }
-
-  if (hasPermission === null) {
-    return <View style={styles.center}><ActivityIndicator size="large" color={Colors.accent} /></View>;
-  }
-
-  if (hasPermission === false) {
-    return (
-      <View style={styles.center}>
-        <Ionicons name="camera-off" size={48} color={Colors.textTertiary} />
-        <Text style={styles.lockedText}>Camera permission denied. Please enable in Settings.</Text>
       </View>
     );
   }
@@ -177,29 +166,26 @@ const ScanScreen: React.FC = () => {
   }
 
   return (
-    <View style={styles.cameraContainer}>
-      <Camera
-        ref={setCameraRef}
-        type={CameraType.back}
-        style={styles.camera}
-        ratio="4:3"
-      />
-      <View style={styles.cameraOverlay}>
-        <View style={styles.scanFrame} />
-        <Text style={styles.scanHint}>Position receipt within the frame</Text>
+    <View style={styles.emptyContainer}>
+      <View style={styles.scanIconWrap}>
+        <Ionicons name="scan-outline" size={64} color={Colors.accent} />
       </View>
-      <View style={styles.cameraControls}>
+      <Text style={styles.emptyTitle}>Scan a Receipt</Text>
+      <Text style={styles.emptyText}>Take a photo or pick from gallery to auto-extract transaction data with AI.</Text>
+      <View style={styles.actionRow}>
+        <TouchableOpacity style={styles.cameraButton} onPress={takePhoto}>
+          <Ionicons name="camera" size={24} color={Colors.white} />
+          <Text style={styles.cameraButtonText}>Take Photo</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.galleryButton} onPress={pickImage}>
-          <Ionicons name="images" size={24} color={Colors.white} />
+          <Ionicons name="images" size={24} color={Colors.text} />
+          <Text style={styles.galleryButtonText}>Pick from Gallery</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
-          <View style={styles.captureInner} />
-        </TouchableOpacity>
-        <View style={styles.galleryButton} />
       </View>
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
@@ -207,15 +193,15 @@ const styles = StyleSheet.create({
   lockedContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: Colors.background },
   lockedTitle: { fontSize: 20, fontWeight: '700', color: Colors.text, marginTop: 16, marginBottom: 8 },
   lockedText: { fontSize: 15, color: Colors.textSecondary, textAlign: 'center', lineHeight: 22 },
-  cameraContainer: { flex: 1, backgroundColor: Colors.dark },
-  camera: { flex: 1 },
-  cameraOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' },
-  scanFrame: { width: 280, height: 380, borderWidth: 2, borderColor: Colors.accent, borderRadius: 12, backgroundColor: 'transparent' },
-  scanHint: { color: Colors.white, fontSize: 14, marginTop: 12, opacity: 0.8 },
-  cameraControls: { position: 'absolute', bottom: 40, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' },
-  galleryButton: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center' },
-  captureButton: { width: 72, height: 72, borderRadius: 36, borderWidth: 4, borderColor: Colors.white, justifyContent: 'center', alignItems: 'center' },
-  captureInner: { width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.white },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, backgroundColor: Colors.background },
+  scanIconWrap: { width: 120, height: 120, borderRadius: 60, backgroundColor: Colors.card, justifyContent: 'center', alignItems: 'center', marginBottom: 24 },
+  emptyTitle: { fontSize: 22, fontWeight: '700', color: Colors.text, marginBottom: 8 },
+  emptyText: { fontSize: 15, color: Colors.textSecondary, textAlign: 'center', lineHeight: 22, marginBottom: 32, maxWidth: 280 },
+  actionRow: { flexDirection: 'column', alignItems: 'center', gap: 12 },
+  cameraButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.accent, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 24, gap: 8 },
+  cameraButtonText: { fontSize: 16, fontWeight: '600', color: Colors.white },
+  galleryButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.card, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 24, gap: 8, borderWidth: 1, borderColor: Colors.border },
+  galleryButtonText: { fontSize: 16, fontWeight: '600', color: Colors.text },
   reviewContainer: { flex: 1, backgroundColor: Colors.background },
   reviewScroll: { flex: 1 },
   capturedImage: { width: '100%', height: 300, backgroundColor: Colors.dark },
@@ -227,15 +213,13 @@ const styles = StyleSheet.create({
   extractedLabel: { fontSize: 15, color: Colors.textSecondary },
   extractedValue: { fontSize: 15, color: Colors.text },
   lineItemsBox: { marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border },
-  lineItemsTitle: { fontSize: 14, fontWeight: '600', color: Colors.text, marginBottom: 8 },
-  lineItemRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
+  lineItemsTitle: { fontSize: 15, fontWeight: '600', color: Colors.textSecondary, marginBottom: 8 },
+  lineItemRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
   lineItemDesc: { fontSize: 14, color: Colors.textSecondary, flex: 1 },
-  lineItemAmount: { fontSize: 14, color: Colors.text },
-  reviewActions: { flexDirection: 'row', gap: 12, padding: 16, backgroundColor: Colors.card, borderTopWidth: 1, borderTopColor: Colors.border },
-  retakeButton: { flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, paddingVertical: 16, borderRadius: 12, backgroundColor: Colors.background, gap: 4 },
-  retakeText: { fontSize: 15, fontWeight: '500', color: Colors.text },
-  saveReceiptButton: { flex: 1.5, justifyContent: 'center', alignItems: 'center', paddingVertical: 16, borderRadius: 12, backgroundColor: Colors.accent },
-  saveReceiptText: { color: Colors.white, fontSize: 16, fontWeight: '600' },
+  lineItemAmount: { fontSize: 14, color: Colors.text, fontWeight: '500' },
+  reviewActions: { flexDirection: 'row', justifyContent: 'space-between', padding: 16, gap: 12 },
+  retakeButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.card, paddingHorizontal: 20, paddingVertical: 14, borderRadius: 12, gap: 8 },
+  retakeText: { fontSize: 15, fontWeight: '600', color: Colors.text },
+  saveReceiptButton: { flex: 1, backgroundColor: Colors.accent, paddingVertical: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  saveReceiptText: { fontSize: 15, fontWeight: '700', color: Colors.white },
 });
-
-export default ScanScreen;

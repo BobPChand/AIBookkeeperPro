@@ -1,32 +1,35 @@
 {
   "cli": {
-    "version": ">= 15.0.0"
+    "version": ">= 15.0.0",
+    "appVersionSource": "local"
   },
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "ios": {
+        "image": "macos-sequoia-15.6-xcode-26.0"
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "ios": {
+        "image": "macos-sequoia-15.6-xcode-26.0"
+      }
     },
     "production": {
+      "autoIncrement": true,
       "ios": {
-        "buildImage": {
-          "image": "macos-sequoia-15.6",
-          "version": "26.0"
-        }
-      },
-      "autoSubmit": true
+        "image": "macos-sequoia-15.6-xcode-26.0"
+      }
     }
   },
   "submit": {
     "production": {
       "ios": {
-        "ascAppId": "REPLACE_WITH_ASC_APP_ID",
+        "ascAppId": "6800172403",
         "appleId": "bobchandroyalpacific@gmail.com",
-        "appSpecificPassword": "REPLACE_WITH_APP_SPECIFIC_PASSWORD",
-        "teamId": "57NFB744L7"
+        "appleTeamId": "QU982T2P9S"
       }
     }
   }
