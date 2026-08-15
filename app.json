@@ -1,53 +1,56 @@
 {
-  "expo": {
-    "name": "AI Bookkeeper Pro",
-    "slug": "ai-bookkeeper-pro",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "scheme": "aibookkeeperpro",
-    "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0F172A"
-    },
-    "newArchEnabled": false,
-    "ios": {
-      "bundleIdentifier": "ai.aibookkeeperpro.app",
-      "supportsTablet": true,
-      "buildNumber": "5",
-      "infoPlist": {
-        "NSCameraUsageDescription": "AI Bookkeeper Pro needs camera access to scan and digitize your receipts.",
-        "NSPhotoLibraryUsageDescription": "AI Bookkeeper Pro needs photo library access to import receipt images.",
-        "NSPhotoLibraryAddUsageDescription": "AI Bookkeeper Pro needs photo library access to save receipt copies."
-      },
-      "config": {
-        "usesNonExemptEncryption": false
-      }
-    },
-    "android": {
-      "package": "ai.aibookkeeperpro.app",
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0F172A"
-      },
-      "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
-      ]
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "plugins": [
-      "expo-image-picker"
-    ],
-    "extra": {
-      "eas": {
-        "projectId": "9d0f3799-d70f-40e6-be7f-fdac9fac6e84"
-      }
-    },
-    "owner": "bc-canadian-usa-global-ventures-llc"
-  }
+    "expo": {
+        "name": "AI Bookkeeper Pro",
+        "slug": "ai-bookkeeper-pro",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/icon.png",
+        "scheme": "aibookkeeperpro",
+        "userInterfaceStyle": "automatic",
+        "splash": {
+            "image": "./assets/splash.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#0F172A"
+        },
+        "newArchEnabled": false,
+        "ios": {
+            "bundleIdentifier": "ai.aibookkeeperpro.app",
+            "supportsTablet": false,
+            "buildNumber": "10",
+            "infoPlist": {
+                "UIDeviceFamily": [
+                    1
+                ],
+                "NSCameraUsageDescription": "AI Bookkeeper Pro needs camera access to scan and digitize your receipts.",
+                "NSPhotoLibraryUsageDescription": "AI Bookkeeper Pro needs photo library access to import receipt images.",
+                "NSPhotoLibraryAddUsageDescription": "AI Bookkeeper Pro needs photo library access to save receipt copies."
+            },
+            "config": {
+                "usesNonExemptEncryption": false
+            }
+        },
+        "android": {
+            "package": "ai.aibookkeeperpro.app",
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/adaptive-icon.png",
+                "backgroundColor": "#0F172A"
+            },
+            "permissions": [
+                "android.permission.CAMERA",
+                "android.permission.RECORD_AUDIO"
+            ]
+        },
+        "web": {
+            "favicon": "./assets/favicon.png"
+        },
+        "plugins": [
+            "expo-image-picker"
+        ],
+        "extra": {
+            "eas": {
+                "projectId": "9d0f3799-d70f-40e6-be7f-fdac9fac6e84"
+            }
+        },
+        "owner": "bc-canadian-usa-global-ventures-llc"
+    }
 }
