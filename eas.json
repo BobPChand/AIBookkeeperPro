@@ -29,10 +29,7 @@
             "ios": {
                 "ascAppId": "6800172403",
                 "appleId": "bobchandroyalpacific@gmail.com",
-                "appleTeamId": "QU982T2P9S",
-                "ascApiKeyPath": "./AuthKey_FZBS4JMXEDI2.p8",
-                "ascApiKeyIssuerId": "a5c5d541-229b-498d-bc8c-0d0da6e204a3",
-                "ascApiKeyId": "FZBS4JMXEDI2"
+                "appleTeamId": "QU982T2P9S"
             }
         }
     }
