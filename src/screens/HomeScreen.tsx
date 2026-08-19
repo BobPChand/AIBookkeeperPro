@@ -1,11 +1,18 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Colors, ScheduleCCategories } from '../constants/colors';
 import { formatCurrency, formatMonthYear } from '../utils/format';
 import { useRevenueCatContext } from '../services/RevenueCatService';
 import { read_entities } from '../utils/entityApi';
+
+import AIChatAssistant from '../components/AIChatAssistant';
+import TaxDeductionFinder from '../components/TaxDeductionFinder';
+import QuarterlyTaxEstimator from '../components/QuarterlyTaxEstimator';
+import CashFlowForecast from '../components/CashFlowForecast';
+import CrossAppSync from '../components/CrossAppSync';
+import MileageTrackerGPS from '../components/MileageTrackerGPS';
 
 interface Transaction {
   id: string;
@@ -17,6 +24,7 @@ interface Transaction {
 }
 
 const HomeScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
   const { isProUser } = useRevenueCatContext();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -27,7 +35,7 @@ const HomeScreen: React.FC = () => {
       const now = new Date();
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
       const data = await read_entities('Transaction', { limit: 500 });
-      const monthTx = data.filter((t: Transaction) => new Date(t.date) >= monthStart);
+      const monthTx = data.filter((t: Transaction) => new Date(t.date) >= new Date(monthStart));
       const income = monthTx.filter((t) => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
       const expenses = monthTx.filter((t) => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
       setStats({ income, expenses, net: income - expenses });
@@ -49,12 +57,12 @@ const HomeScreen: React.FC = () => {
     setRefreshing(false);
   };
 
-  const chartData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      { data: [2400, 3100, 2800, 3500, 3200, 3800], color: () => Colors.income, strokeWidth: 2 },
-      { data: [1200, 1800, 1500, 2000, 1700, 2100], color: () => Colors.expense, strokeWidth: 2 },
-    ],
+  const handleOpenAiAssistant = () => {
+    navigation.navigate('AI Assistant');
+  };
+
+  const handleOpenTaxCenter = () => {
+    navigation.navigate('Tax Center');
   };
 
   return (
@@ -62,6 +70,10 @@ const HomeScreen: React.FC = () => {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.accent} />}
     >
+      {/* 1. Prominent AI Chat Assistant Card at Top */}
+      <AIChatAssistant compact onExpand={handleOpenAiAssistant} />
+
+      {/* 2. Net Profit Banner */}
       <View style={styles.netProfitCard}>
         <Text style={styles.netProfitLabel}>Net Profit This Month</Text>
         <Text style={[styles.netProfitAmount, { color: stats.net >= 0 ? Colors.income : Colors.expense }]}>
@@ -73,6 +85,7 @@ const HomeScreen: React.FC = () => {
         </View>
       </View>
 
+      {/* 3. Income / Expense Stats */}
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
           <View style={styles.statIconIncome}>
@@ -90,28 +103,54 @@ const HomeScreen: React.FC = () => {
         </View>
       </View>
 
+      {/* 4. Tax Deduction Finder Banner */}
+      <TaxDeductionFinder bannerOnly onOpenFull={handleOpenTaxCenter} />
+
+      {/* 5. Quarterly Tax Estimator Widget */}
+      <QuarterlyTaxEstimator widgetOnly />
+
+      {/* 6. Cash Flow Forecast Component */}
+      <CashFlowForecast />
+
+      {/* 7. Ecosystem Cross-App Sync */}
+      <CrossAppSync />
+
+      {/* 8. GPS Mileage Tracker */}
+      <MileageTrackerGPS />
+
+      {/* 9. Recent Transactions Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Recent Transactions</Text>
         {transactions.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="receipt-outline" size={48} color={Colors.textTertiary} />
             <Text style={styles.emptyText}>No transactions yet</Text>
-            <Text style={styles.emptySubtext}>Add one from the Transactions tab</Text>
+            <Text style={styles.emptySubtext}>Add one from the Transactions tab or scan a receipt</Text>
           </View>
         ) : (
           transactions.map((tx) => {
             const cat = ScheduleCCategories.find((c) => c.id === tx.category);
             return (
               <View key={tx.id} style={styles.txRow}>
-                <View style={[styles.txIcon, { backgroundColor: tx.type === 'income' ? Colors.accentLight : Colors.neutralLight }]}>
-                  <Ionicons name={(cat?.icon || 'document') as any} size={20} color={tx.type === 'income' ? Colors.income : Colors.neutral} />
+                <View
+                  style={[
+                    styles.txIcon,
+                    { backgroundColor: tx.type === 'income' ? Colors.accentLight : Colors.neutralLight },
+                  ]}
+                >
+                  <Ionicons
+                    name={(cat?.icon || 'document') as any}
+                    size={20}
+                    color={tx.type === 'income' ? Colors.income : Colors.neutral}
+                  />
                 </View>
                 <View style={styles.txInfo}>
                   <Text style={styles.txMerchant}>{tx.merchant}</Text>
                   <Text style={styles.txCategory}>{cat?.label || tx.category}</Text>
                 </View>
                 <Text style={[styles.txAmount, { color: tx.type === 'income' ? Colors.income : Colors.expense }]}>
-                  {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
+                  {tx.type === 'income' ? '+' : '-'}
+                  {formatCurrency(tx.amount)}
                 </Text>
               </View>
             );
@@ -122,7 +161,7 @@ const HomeScreen: React.FC = () => {
       {!isProUser && (
         <View style={styles.upgradeBanner}>
           <Ionicons name="star" size={20} color={Colors.accent} />
-          <Text style={styles.upgradeText}>Upgrade to Pro for unlimited transactions and receipt scanning</Text>
+          <Text style={styles.upgradeText}>Upgrade to Pro for unlimited transactions, GPT-4o receipt scanning, and AI features.</Text>
         </View>
       )}
     </ScrollView>
@@ -131,13 +170,13 @@ const HomeScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  netProfitCard: { backgroundColor: Colors.primary, padding: 24, margin: 16, borderRadius: 16 },
+  netProfitCard: { backgroundColor: Colors.primary, padding: 24, marginHorizontal: 16, marginVertical: 8, borderRadius: 16 },
   netProfitLabel: { color: Colors.white, fontSize: 14, opacity: 0.7, marginBottom: 8 },
   netProfitAmount: { fontSize: 36, fontWeight: '700' },
   trendRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
   trendText: { color: Colors.white, fontSize: 14, opacity: 0.6 },
-  statsRow: { flexDirection: 'row', gap: 12, marginHorizontal: 16 },
-  statCard: { flex: 1, backgroundColor: Colors.card, borderRadius: 12, padding: 16, alignItems: 'center' },
+  statsRow: { flexDirection: 'row', gap: 12, marginHorizontal: 16, marginVertical: 4 },
+  statCard: { flex: 1, backgroundColor: Colors.card, borderRadius: 12, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: Colors.border },
   statIconIncome: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.accentLight, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
   statIconExpense: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.expenseLight, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
   statLabel: { fontSize: 12, color: Colors.textSecondary, marginBottom: 4 },

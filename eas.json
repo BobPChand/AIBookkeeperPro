@@ -1,36 +1,39 @@
 {
-  "cli": {
-    "version": ">= 15.0.0",
-    "appVersionSource": "local"
-  },
-  "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal",
-      "ios": {
-        "image": "macos-sequoia-15.6-xcode-26.0"
-      }
+    "cli": {
+        "version": ">= 15.0.0",
+        "appVersionSource": "local"
     },
-    "preview": {
-      "distribution": "internal",
-      "ios": {
-        "image": "macos-sequoia-15.6-xcode-26.0"
-      }
+    "build": {
+        "development": {
+            "developmentClient": true,
+            "distribution": "internal",
+            "ios": {
+                "image": "macos-sequoia-15.6-xcode-26.0"
+            }
+        },
+        "preview": {
+            "distribution": "internal",
+            "ios": {
+                "image": "macos-sequoia-15.6-xcode-26.0"
+            }
+        },
+        "production": {
+            "autoIncrement": true,
+            "ios": {
+                "image": "macos-sequoia-15.6-xcode-26.0"
+            }
+        }
     },
-    "production": {
-      "autoIncrement": true,
-      "ios": {
-        "image": "macos-sequoia-15.6-xcode-26.0"
-      }
+    "submit": {
+        "production": {
+            "ios": {
+                "ascAppId": "6800172403",
+                "appleId": "bobchandroyalpacific@gmail.com",
+                "appleTeamId": "QU982T2P9S",
+                "ascApiKeyPath": "./AuthKey_FZBS4JMXEDI2.p8",
+                "ascApiKeyIssuerId": "a5c5d541-229b-498d-bc8c-0d0da6e204a3",
+                "ascApiKeyId": "FZBS4JMXEDI2"
+            }
+        }
     }
-  },
-  "submit": {
-    "production": {
-      "ios": {
-        "ascAppId": "6800172403",
-        "appleId": "bobchandroyalpacific@gmail.com",
-        "appleTeamId": "QU982T2P9S"
-      }
-    }
-  }
 }
